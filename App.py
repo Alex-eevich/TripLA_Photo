@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter.ttk import Label
+from matplotlib import pyplot as plt
 
 from PIL import Image, ImageTk, ImageOps
 import cv2
@@ -226,6 +227,55 @@ def save_image():
     else:
         print("Ошибка при изменении размера изображения.")
 
+def make_show_hist():
+    pil_image = image_canvas.image1
+    color = ("b", "g", "r")
+    for i, color in enumerate(color):
+        hist = cv2.calcHist([pil_image], [i], None, [256], [0, 256])
+        plt.title("Histogram of image in real time")
+        plt.xlabel("Bins")
+        plt.ylabel("num of perlex")
+        plt.plot(hist, color=color)
+        plt.xlim([0, 260])
+
+    plt.savefig('hist.png')
+    plt.clf()
+
+    hist = cv2.imread('hist.png')
+
+    resized_width = image_canvas.winfo_width()
+    resized_height = image_canvas.winfo_height()
+
+    # меняем размер изображения
+    hist = cv2.resize(hist, (resized_width, resized_height))
+
+    # создание объекта изображения Pillow
+    pil_image = Image.fromarray(hist)
+
+    # создание объекта изображения Tkinter
+    tk_image = ImageTk.PhotoImage(master=main_canvas, image=pil_image)
+
+    # сохранение ссылки на объект изображения
+    image_canvas.image = tk_image
+
+    # отображение изображения на канвасе
+    image_canvas.create_image(0, 0, image=tk_image, anchor=tk.NW)
+
+def reload_img():
+    pil_image = image_canvas.image1
+    img = np.asarray(pil_image)
+
+    # создание объекта изображения Pillow
+    pil_image = Image.fromarray(img)
+
+    # создание объекта изображения Tkinter
+    tk_image = ImageTk.PhotoImage(master=main_canvas, image=pil_image)
+
+    # сохранение ссылки на объект изображения
+    image_canvas.image = tk_image
+
+    # отображение изображения на канвасе
+    image_canvas.create_image(0, 0, image=tk_image, anchor=tk.NW)
 
 
 # создание кнопки для применения фильтров
@@ -235,6 +285,15 @@ button_apply_filters.place(x=950, y=600)
 # создание кнопки для применения фильтров
 button_apply_filters = tk.Button(main_canvas, text="Скачать изображение", command=save_image)
 button_apply_filters.place(x=1125, y=600)
+
+# создание кнопки для применения фильтров
+button_apply_filters = tk.Button(main_canvas, text="Показать гистограмму яркости", command=make_show_hist)
+button_apply_filters.place(x=576, y=10)
+
+# создание кнопки для применения фильтров
+button_apply_filters = tk.Button(main_canvas, text="Показать изображение", command=reload_img)
+button_apply_filters.place(x=776, y=10)
+
 
 # создание кнопки для загрузки изображения
 button_load = tk.Button(main_canvas, text="Загрузить изображение", command=load_image)
